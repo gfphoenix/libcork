@@ -229,6 +229,60 @@ START_TEST(test_u128_sub)
 END_TEST
 
 
+static const struct arithmetic_test MUL_TESTS[] = {
+    {0, 0, 0, 0, 0, 0},
+    {0, 1, 0, 1, 0, 1},
+    {0, 2, 0, 1, 0, 2},
+    {1, 0, 0, 1, 1, 0},
+    {1, 0, 0, 2, 2, 0},
+    {0, UINT64_C(0x8000000000000000), 0, 2, 1, 0},
+#include "u128-tests-mul.c.in"
+};
+
+START_TEST(test_u128_mul)
+{
+    DESCRIBE_TEST;
+    check_arithmetic_tests(cork_u128_mul, "*", MUL_TESTS);
+}
+END_TEST
+
+
+static const struct arithmetic_test DIV_TESTS[] = {
+    {0, 0, 0, 1, 0, 0},
+    {0, 1, 0, 1, 0, 1},
+    {0, 2, 0, 1, 0, 2},
+    {1, 0, 0, 1, 1, 0},
+    {2, 0, 0, 2, 1, 0},
+    {1, 0, 0, 2, 0, UINT64_C(0x8000000000000000)},
+#include "u128-tests-div.c.in"
+};
+
+START_TEST(test_u128_div)
+{
+    DESCRIBE_TEST;
+    check_arithmetic_tests(cork_u128_div, "/", DIV_TESTS);
+}
+END_TEST
+
+
+static const struct arithmetic_test MOD_TESTS[] = {
+    {0, 0, 0, 1, 0, 0},
+    {0, 1, 0, 1, 0, 0},
+    {0, 2, 0, 1, 0, 0},
+    {1, 0, 0, 1, 0, 0},
+    {0, 3, 0, 2, 0, 1},
+    {1, 3, 0, 2, 0, 1},
+#include "u128-tests-mod.c.in"
+};
+
+START_TEST(test_u128_mod)
+{
+    DESCRIBE_TEST;
+    check_arithmetic_tests(cork_u128_mod, "%", MOD_TESTS);
+}
+END_TEST
+
+
 #define test_u128_cmp(op, op_str, v1, v2, expected) \
     do { \
         bool  actual = cork_u128_##op((v1), (v2)); \
@@ -316,6 +370,9 @@ test_suite()
     tcase_add_test(tc_u128, test_u128_print);
     tcase_add_test(tc_u128, test_u128_add);
     tcase_add_test(tc_u128, test_u128_sub);
+    tcase_add_test(tc_u128, test_u128_mul);
+    tcase_add_test(tc_u128, test_u128_div);
+    tcase_add_test(tc_u128, test_u128_mod);
     tcase_add_test(tc_u128, test_u128_eq);
     tcase_add_test(tc_u128, test_u128_lt);
     tcase_add_test(tc_u128, test_u128_gt);

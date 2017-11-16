@@ -10,6 +10,7 @@
 #ifndef LIBCORK_CORE_U128_H
 #define LIBCORK_CORE_U128_H
 
+#include <stdlib.h>
 
 #include <libcork/config.h>
 #include <libcork/core/api.h>
@@ -117,6 +118,94 @@ cork_u128_sub(cork_u128 a, cork_u128 b)
     result._.be64.lo = a._.be64.lo - b._.be64.lo;
     result._.be64.hi =
         a._.be64.hi - b._.be64.hi - (result._.be64.lo > a._.be64.lo);
+#endif
+    return result;
+}
+
+CORK_ATTR_UNUSED
+static cork_u128
+cork_u128_mul(cork_u128 lhs, cork_u128 rhs)
+{
+    cork_u128  result;
+#if CORK_U128_HAVE_U128
+    result._.u128 = lhs._.u128 * rhs._.u128;
+#else
+    /* Multiplication table:  (each letter is 32 bits)
+     *
+     *         AaBb
+     *       * CcDd
+     *       ------
+     *           Ee = b * d
+     *          Ff  = B * d
+     *         Gg   = a * d
+     *        Hh    = A * d
+     *          Ii  = b * D
+     *         Jj   = B * D
+     *        Kk    = a * D
+     *       Ll     = A * D
+     *         Mm   = b * c
+     *        Nn    = B * c
+     *       Oo     = a * c         x = e
+     *      Pp      = A * c         X = E + f + i                 + [carry of x]
+     *        Qq    = b * C         w = F + g + I + j + m         + [carry of X]
+     *       Rr     = B * C         W = G + h + J + k + M + n + q + [carry of w]
+     *      Ss      = a * C         v = H + K + l + N + o + Q + r + [carry of W]
+     *     Tt       = A * C         V = L + O + p + R + s         + [carry of v]
+     *     --------                 u = P + S + t                 + [carry of V]
+     *     UuVvWwXx                 U = T                         + [carry of U]
+     */
+#endif
+    uint64_t A = lhs._.u32[3];
+    uint64_t a = lhs._.u32[2];
+    uint64_t B = lhs._.u32[1];
+    uint64_t b = lhs._.u32[0];
+    uint64_t C = rhs._.u32[3];
+    uint64_t c = rhs._.u32[2];
+    uint64_t D = rhs._.u32[1];
+    uint64_t d = rhs._.u32[0];
+    uint64_t Ee = b * d, E = Ee >> 32, e = Ee & 0xffffffff;
+    uint64_t Ff = B * d, F = Ff >> 32, f = Ff & 0xffffffff;
+    uint64_t Gg = a * d, G = Gg >> 32, g = Gg & 0xffffffff;
+    uint64_t Hh = A * d,               h = Hh & 0xffffffff;
+    uint64_t Ii = b * D, I = Ii >> 32, i = Ii & 0xffffffff;
+    uint64_t Jj = B * D, J = Jj >> 32, j = Jj & 0xffffffff;
+    uint64_t Kk = a * D,               k = Kk & 0xffffffff;
+    uint64_t Mm = b * c, M = Mm >> 32, m = Mm & 0xffffffff;
+    uint64_t Nn = B * c,               n = Nn & 0xffffffff;
+    uint64_t Qq = b * C,               q = Qq & 0xffffffff;
+    uint64_t x = e;
+    uint64_t X = E + f + i                 + (x >> 32);
+    uint64_t w = F + g + I + j + m         + (X >> 32);
+    uint64_t W = G + h + J + k + M + n + q + (w >> 32);
+    result._.u32[3] = W;
+    result._.u32[2] = w;
+    result._.u32[1] = X;
+    result._.u32[0] = x;
+    return result;
+}
+
+CORK_ATTR_UNUSED
+static cork_u128
+cork_u128_div(cork_u128 a, cork_u128 b)
+{
+    cork_u128  result;
+#if CORK_U128_HAVE_U128
+    result._.u128 = a._.u128 / b._.u128;
+#else
+    abort();
+#endif
+    return result;
+}
+
+CORK_ATTR_UNUSED
+static cork_u128
+cork_u128_mod(cork_u128 a, cork_u128 b)
+{
+    cork_u128  result;
+#if CORK_U128_HAVE_U128
+    result._.u128 = a._.u128 % b._.u128;
+#else
+    abort();
 #endif
     return result;
 }
