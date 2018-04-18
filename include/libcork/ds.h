@@ -20,6 +20,7 @@
 #include <libcork/ds/managed-buffer.h>
 #include <libcork/ds/ring-buffer.h>
 #include <libcork/ds/slice.h>
+#include <libcork/ds/slstack.h>
 #include <libcork/ds/stream.h>
 
 #endif /* LIBCORK_DS_H */
